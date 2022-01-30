@@ -4,7 +4,15 @@ const {Client, Intents} = require('discord.js')
 
 const messagesHandler = require('./libs/messageHandler')
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] })
+const client = new Client({ 
+  intents: [
+    Intents.FLAGS.GUILDS, 
+    Intents.FLAGS.GUILD_MESSAGES, 
+    Intents.FLAGS.GUILD_PRESENCES, 
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_VOICE_STATES
+  ] 
+})
 
 client.on('ready', () => {
   console.log(`Bot is ready as: ${client.user.tag}`)
