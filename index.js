@@ -2,7 +2,7 @@ require('dotenv').config()
 
 const {Client, Intents} = require('discord.js')
 
-const messagesHandler = require('./libs/messageHandler')
+const messagesHandler = require('./src/libs/messageHandler')
 
 const client = new Client({ 
   intents: [

@@ -64,58 +64,96 @@ function helpCommand (msg, msgArr) {
   }
 }
 
-const alreadySelectedUsers = []
-async function dailyCommand (msg, msgArr) {
+let members = [{
+  id: '802571453274390588-',
+  nickname: 'Dario',
+  alreadySelected: false,
+  online: true
+},
+{
+  id: 'asdasdasd4390588',
+  nickname: 'Juanito',
+  alreadySelected: false,
+  online: true
+}]
+const dailyCommand = async (msg, msgArr) => {
   if(!msgArr[1]) {
     const dailyChannel = await getChannel(msg, 'Daily', true, true).fetch(true)
     if (!dailyChannel) {
       msg.channel.send('ERROR: Daily channel not found')
     } else {
-      console.log('Members: ', dailyChannel.members)
-      // console.log('Daily channel:', dailyChannel)
-      // const members = await dailyChannel.members
-      // console.log('Daily members:', members)
-      // const users = []
-      // for (member of members.values()) {
-      //   console.log('Member:', member)
-      //   users.push(member.user)
-      // }
-      // console.log('Daily users:', users)
-      // const availableUsers = 
-      // const msgText = `Te toca ${}`
-      // msg.channel.send(msgText)
+      console.log('Members: ', members)
+      members = updateMembers(members, dailyChannel.members)
+      const {selectedMember, memberIndex, last} = pickMember(members)
+      console.log('Selected member: ', selectedMember)
+
+      if (memberIndex >= 0) {
+        members[memberIndex].alreadySelected = true
+        msg.channel.send(`Te toca ${selectedMember.nickname}!`)
+      }
+      if (memberIndex === -1 || last) {
+        msg.channel.send(`La daily termino.`)
+      }
+      
     }
   }
 }
 
-const members = [{
-  id: '802571453274390588',
-  nickname: 'Dario',
-  alreadySelected: false
-},
-{
-  id: 'asdasdasd4390588',
-  nickname: 'Juanito',
-  alreadySelected: false
-}]
-const pickMember = () => {
-  const leftMembers = members.filter(mem => !mem.alreadySelected)
-  const randNumber = Math.floor(Math.random() * leftMembers.length)
-  const selectedMember = leftMembers[randNumber]
-  selectedMember.alreadySelected = true
-  return selectedMember
+/**
+ * Custom Member object to keep track of the already selected user
+ * @typedef {Object} MemberItem
+ * @property {string} id - The user id
+ * @property {string} nickname - The user nickname
+ * @property {boolean} alreadySelected - True if the user has already been selected
+ */
+
+/**
+ * @typedef {Object} PickedMemberData
+ * @property {MemberItem} selectedMember - The picked member
+ * @property {number} memberIndex - The index of the member in the members array, if -1 means there are no more members
+ * @property {boolean} last - True if the member is the last one
+ */
+
+/**
+ * Picks a random unselected member and returns it
+ * @param {Array<MemberItem>} members - Array of members
+ * @returns {PickedMemberData} - The data of the picked member
+ */
+const pickMember = (members) => {
+  const leftMembers = members.filter(mem => mem.online && !mem.alreadySelected)
+  console.log('Left members: ', leftMembers)
+  if (leftMembers.length > 0) {
+    const randNumber = Math.floor(Math.random() * leftMembers.length)
+    const selectedMember = leftMembers[randNumber]
+    const memberIndex = members.findIndex(mem => mem.id === selectedMember.id)
+    return {selectedMember, memberIndex, last: (leftMembers.length === 1)}
+  } else {
+    return {selectedMember: {}, memberIndex: -1, last: false}
+  }
 }
 
-const updateMembers = (newMembers) => {
-  newMembers.forEach(newMem => {
-    const alreadyPickedMember = members.find(mem => mem.id === newMem.id)
-    if (!alreadyPickedMember) {
-      members.push({
-        id: newMem.id,
-        nickname: newMem.nickname,
-        alreadySelected: false
-      })
+/**
+ * Returns the members that are currently connected to the server,
+ * if someone isn't connected anymore, it's marked as offline
+ * @param {Array<MemberItem>} members - Array of members
+ * @param {Array<Object>} channelMembers - Array of member objects from the discord API
+ * @returns {Array<MemberItem>}
+ */
+const updateMembers = (members, channelMembers) => {
+  const newMembers = members.map(mem => ({...mem, online: false}))
+  channelMembers.forEach(chMem => {
+    const alreadyPickedMember = members.find(mem => mem.id === chMem.id)
+    if (alreadyPickedMember) {
+      alreadyPickedMember.online = true
+      newMembers.push(alreadyPickedMember)
+    } else {
+      newMembers.push({
+        id: chMem.id,
+        nickname: chMem.nickname,
+        alreadySelected: false,
+        online: true
+      }) 
     }
   })
-  return members
+  return newMembers
 }

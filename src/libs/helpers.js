@@ -6,7 +6,7 @@
  * @param {boolean} voiceChannel - Set to true for only return voice channels
  * @returns {Object} - Channel instance
  */
-function getChannel(msg, channel, voiceChannel = false) {
+function getChannel (msg, channel, voiceChannel = false) {
   return msg.guild.channels.cache.find(c => c.name === channel && (!voiceChannel || c.isVoice()))
 }
 

@@ -1,6 +1,7 @@
 {
   "name": "agile-ds-bot",
   "version": "0.1.0",
+  "author": "Dario Funes",
   "dependencies": {
     "discord.js": "^13.6.0",
     "dotenv": "^10.0.0",
